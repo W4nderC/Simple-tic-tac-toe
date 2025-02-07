@@ -19,8 +19,10 @@ public class GameManager : NetworkBehaviour
     public class OnGameWinEventArgs : EventArgs
     {
         public Line line;
+        public PlayerType winPlayerType;
     }
     public event EventHandler OnCurrentPlayablePLayerTypeChange;
+    public event EventHandler OnRematch;
 
     public enum PlayerType {
         None,
@@ -199,17 +201,44 @@ public class GameManager : NetworkBehaviour
     }
 
     private void TestWinner () {
-        foreach(Line line in lineList){
+        for(int i = 0; i<lineList.Count; i++){
+            Line line = lineList[i];
             if(TestWinnerLine(line)) {
                 //Win!
                 print("Winner!");
                 currentPlayablePlayerType.Value = PlayerType.None;
-                OnGameWin?.Invoke(this, new OnGameWinEventArgs{
-                    line = line
-                });
+                TriggerGameWinRpc(i, playerTypeArray[line.centerGridPos.x, line.centerGridPos.y]);
                 break;
             }
         }
+    }
+
+    [Rpc(SendTo.ClientsAndHost)]
+    private void TriggerGameWinRpc (int lineIndex, PlayerType winPlayerType) {
+        Line line = lineList[lineIndex];
+        OnGameWin?.Invoke(this, new OnGameWinEventArgs{
+            line = line,
+            winPlayerType = winPlayerType,
+        });
+    }
+
+    [Rpc(SendTo.Server)]
+    public void RematchRpc () {
+        for (int x = 0; x < playerTypeArray.GetLength(0); x++)
+        {
+            for (int y = 0; y < playerTypeArray.GetLength(1); y++)
+            {
+                playerTypeArray[x, y] = PlayerType.None;
+            }
+        }
+        currentPlayablePlayerType.Value = PlayerType.Cross;
+
+        TriggerOnRemathRpc();
+    }
+
+    [Rpc(SendTo.ClientsAndHost)]
+    private void TriggerOnRemathRpc () {
+        OnRematch?.Invoke(this, EventArgs.Empty);
     }
 
     public PlayerType GetLocalPlayerType()

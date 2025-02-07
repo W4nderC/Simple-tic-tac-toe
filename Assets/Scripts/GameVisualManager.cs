@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -10,14 +11,33 @@ public class GameVisualManager : NetworkBehaviour
     [SerializeField] private Transform circlePrefab;
     [SerializeField] private Transform finishedLinePrefab;
 
+    private List<GameObject> visualGameObjectList;
+
+    private void Awake() {
+        visualGameObjectList = new List<GameObject>(); 
+    }
+
     private void Start() 
     {
         GameManager.Instance.OnClickOnGridPos += GameManager_OnClickOnGridPos;
         GameManager.Instance.OnGameWin += GameManager_OnGameWin;
+        GameManager.Instance.OnRematch += GameManager_OnRematch;
+    }
+
+    private void GameManager_OnRematch(object sender, EventArgs e)
+    {
+        foreach (GameObject visualGameObject in visualGameObjectList)
+        {
+            Destroy(visualGameObject);
+        }
+        visualGameObjectList.Clear();
     }
 
     private void GameManager_OnGameWin(object sender, GameManager.OnGameWinEventArgs e)
     {
+        if(!NetworkManager.Singleton.IsServer) {
+            return;
+        }
         float eulerZ = 0f;
         switch (e.line.orientation)
         {
@@ -34,8 +54,6 @@ public class GameVisualManager : NetworkBehaviour
             case GameManager.Orientation.DiagonalB:
                 eulerZ = -45f;
                 break;
-
-        
         }
 
         Transform lineCompleteTransform =
@@ -45,6 +63,8 @@ public class GameVisualManager : NetworkBehaviour
             GetGridWorldPos(e.line.centerGridPos.x, e.line.centerGridPos.y), 
             Quaternion.Euler(0, 0, eulerZ));
         lineCompleteTransform.GetComponent<NetworkObject>().Spawn(true);
+
+        visualGameObjectList.Add(lineCompleteTransform.gameObject);
     }
 
     private void GameManager_OnClickOnGridPos(object sender, GameManager.OnClickOnGridPosEventArgs e)
@@ -69,6 +89,7 @@ public class GameVisualManager : NetworkBehaviour
         Transform spawnedCrossTransform = Instantiate(prefab, GetGridWorldPos(x, y), Quaternion.identity);
         spawnedCrossTransform.GetComponent<NetworkObject>().Spawn(true);
         
+        visualGameObjectList.Add(spawnedCrossTransform.gameObject);
     }
 
     private Vector2 GetGridWorldPos(int x, int y)
