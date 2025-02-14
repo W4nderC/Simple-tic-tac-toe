@@ -26,6 +26,10 @@ public class GameVisualManager : NetworkBehaviour
 
     private void GameManager_OnRematch(object sender, EventArgs e)
     {
+        if (!NetworkManager.Singleton.IsServer) {
+            return;
+        }
+
         foreach (GameObject visualGameObject in visualGameObjectList)
         {
             Destroy(visualGameObject);
@@ -97,8 +101,4 @@ public class GameVisualManager : NetworkBehaviour
         return new Vector2(-GRID_SIZE + x * GRID_SIZE, -GRID_SIZE + y * GRID_SIZE);
     }
 
-    void Update()
-    {
-        
-    }
 }

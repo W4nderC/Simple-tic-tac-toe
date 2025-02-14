@@ -52,13 +52,7 @@ public class GameOverUI : MonoBehaviour
         }
         Show();
     }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
-
+    
     private void Show () {
         gameObject.SetActive(true);
     }

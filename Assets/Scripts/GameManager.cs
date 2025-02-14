@@ -21,7 +21,7 @@ public class GameManager : NetworkBehaviour
         public Line line;
         public PlayerType winPlayerType;
     }
-    public event EventHandler OnCurrentPlayablePLayerTypeChange;
+    public event EventHandler OnCurrentPlayablePlayerTypeChange;
     public event EventHandler OnRematch;
     public event EventHandler OnGameTie;
     public event EventHandler OnScoreChange;
@@ -136,7 +136,7 @@ public class GameManager : NetworkBehaviour
 
         currentPlayablePlayerType.OnValueChanged += (PlayerType oldPlayerType, PlayerType newPlayerType) =>
         {
-            OnCurrentPlayablePLayerTypeChange?.Invoke(this, EventArgs.Empty);
+            OnCurrentPlayablePlayerTypeChange?.Invoke(this, EventArgs.Empty);
         };
 
         playerCrossScore.OnValueChanged += (int prevScore, int newScore) => {
@@ -171,6 +171,7 @@ public class GameManager : NetworkBehaviour
         }
 
         if(playerTypeArray[x, y] != PlayerType.None) {
+            // Already occupied
             return;
         }
 
@@ -249,7 +250,6 @@ public class GameManager : NetworkBehaviour
                     hasTie = false;
                 }
             }
-            
         }
 
         if(hasTie) {
